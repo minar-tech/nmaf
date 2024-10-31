@@ -15,7 +15,7 @@ for file in "$input_dir"/*.docx; do
     filename=$(basename "$file" .docx)
     
     # Convert .docx to .html using Pandoc, setting the title metadata
-    pandoc "$file" -f docx -t html -s -o "$output_dir/$filename.html" --metadata title="$filename"
+    pandoc "$file" -f docx -t html -s -o "$output_dir/$filename.html" --metadata title="$filename" --wrap=preserve --no-highlight
 done
 
 echo "Conversion completed!"
