@@ -1,0 +1,69 @@
+from google.cloud import storage, translate_v3 as translate
+from bs4 import BeautifulSoup
+
+def batch_translate():
+    # Initialize clients
+    storage_client = storage.Client()
+    translate_client = translate.TranslationServiceClient()
+
+    # Define input and output buckets
+    input_bucket_name = 'nmaf_input-bucket-1'
+    output_bucket_name = 'nmaf_output-bucket'
+
+    # Access the input and output buckets
+    input_bucket = storage_client.bucket(input_bucket_name)
+    output_bucket = storage_client.bucket(output_bucket_name)
+
+    # Define project ID and location for the Translation API
+    project_id = "YOUR_PROJECT_ID"  # Replace with your actual project ID
+    parent = f"projects/{project_id}/locations/global"
+
+    # Process each HTML file in the input bucket
+    blobs = input_bucket.list_blobs()
+
+    for blob in blobs:
+        if blob.name.endswith('.html'):
+            print(f'Processing {blob.name}...')
+
+            # Download HTML content from the input bucket
+            html_content = blob.download_as_text()
+
+            # Parse HTML and locate the Arabic div
+            soup = BeautifulSoup(html_content, 'html.parser')
+            arabic_div = soup.find('div', {'name': 'content-ar'})
+
+            if arabic_div and arabic_div.get_text().strip():
+                # Extract Arabic text for translation
+                arabic_text = arabic_div.get_text().strip()
+
+                # Translate the text from Arabic to English
+                response = translate_client.translate_text(
+                    request={
+                        "parent": parent,
+                        "contents": [arabic_text],
+                        "mime_type": "text/plain",  # Specify plain text to avoid HTML tags in translation
+                        "source_language_code": "ar",
+                        "target_language_code": "en",
+                    }
+                )
+
+                # Retrieve the translated text
+                translated_text = response.translations[0].translated_text
+
+                # Replace Arabic content with translated English text in a new div
+                english_div = soup.new_tag('div', name="content-en")
+                english_div.string = translated_text
+                arabic_div.replace_with(english_div)
+
+                # Rename the file for output by replacing '_ar_' with '_en_'
+                new_file_name = blob.name.replace('_ar_', '_en_')
+
+                # Upload the modified HTML content to the output bucket with the new name
+                output_blob = output_bucket.blob(new_file_name)
+                output_blob.upload_from_string(str(soup), content_type="text/html")
+                print(f'Translated and saved as {new_file_name}.')
+            else:
+                print(f'No Arabic text found in {blob.name} or text is empty.')
+
+if __name__ == '__main__':
+    batch_translate()

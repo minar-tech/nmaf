@@ -1,0 +1,7 @@
+gcloud beta ml translate batch-translate-text --source-language=ar --target-language-codes=en --source=gs://nmaf_input-bucket/* --destination=gs://nmaf_output-bucket
+
+C:\Program Files (x86)\Google\Cloud SDK>gcloud beta ml translate batch-translate-text --source-language=ar --target-language-codes=en --source=gs://nmaf_input-bucket/* --destination=gs://nmaf_output-bucket
+metadata:
+  '@type': type.googleapis.com/google.cloud.translation.v3.BatchTranslateMetadata
+  state: RUNNING
+name: projects/704717185704/locations/global/operations/20241101-15141730499268-6723e344-0000-2600-9897-582429c69ac4

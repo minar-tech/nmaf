@@ -1,0 +1,41 @@
+from google.cloud import storage
+from bs4 import BeautifulSoup
+
+def wrap_arabic_text():
+    # Initialize Google Cloud Storage client
+    storage_client = storage.Client()
+
+    # Define the input bucket
+    input_bucket_name = 'nmaf_input-bucket-1'
+    input_bucket = storage_client.bucket(input_bucket_name)
+
+    # Process each HTML file in the input bucket
+    blobs = input_bucket.list_blobs()
+
+    for blob in blobs:
+        if blob.name.endswith('.html'):
+            print(f'Processing {blob.name}...')
+
+            # Download HTML content from the input bucket
+            html_content = blob.download_as_text()
+
+            # Parse HTML and find all <p> tags
+            soup = BeautifulSoup(html_content, 'html.parser')
+            paragraphs = soup.find_all('p')
+
+            # Wrap each <p> tag containing Arabic text in <div name="content-ar"></div>
+            for paragraph in paragraphs:
+                arabic_text = paragraph.get_text().strip()
+                if arabic_text:
+                    # Create a new div and wrap the <p> tag inside it
+                    wrapper_div = soup.new_tag('div', attrs={"name": "content-ar"})
+                    paragraph.insert_before(wrapper_div)  # Insert the wrapper before the <p> tag
+                    wrapper_div.append(paragraph)         # Move the <p> tag inside the wrapper
+
+            # Save the modified HTML content back to the input bucket
+            output_blob = input_bucket.blob(blob.name)
+            output_blob.upload_from_string(str(soup), content_type="text/html")
+            print(f'Wrapped Arabic text and saved {blob.name}.')
+
+if __name__ == '__main__':
+    wrap_arabic_text()

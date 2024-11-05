@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Define the directory containing the HTML files
+HTML_DIR="C:/Users/mikan/GIT/nmaf/law/footnotes/ar/html"
+
+# Loop over each HTML file in the directory
+for filepath in "$HTML_DIR"/*.html; do
+    # Read the content of the file
+    content=$(<"$filepath")
+
+    # Use sed to add <div name="content-ar"> around the <p> tags
+    modified_content=$(echo "$content" | sed -E 's|(<p[^>]*>.*?</p>)|<div name="content-ar">\1</div>|g')
+
+    # Write the modified content back to the file
+    echo "$modified_content" > "$filepath"
+
+    # Display the file that was processed
+    echo "Processed $filepath"
+done
