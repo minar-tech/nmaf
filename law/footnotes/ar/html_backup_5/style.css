@@ -1,0 +1,19 @@
+body {
+    margin: 0 auto;
+    max-width: 36em;
+    padding: 50px;
+    font-kerning: normal;
+}
+div[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+p {
+    margin: 1em 0;
+}
+blockquote {
+    margin: 1em 0 1em 1.7em;
+    padding-left: 1em;
+    border-left: 2px solid #e6e6e6;
+    color: #606060;
+}
